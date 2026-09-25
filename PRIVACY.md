@@ -23,4 +23,4 @@ Uninstalling the extension deletes everything it stored. You can also clear the 
 
 ## Contact
 
-Open an issue on the project's GitHub repository.
+Open an issue at https://github.com/alexdeg92/pr-code-stats/issues

@@ -55,4 +55,6 @@ Certify all three:
 - I do not use or transfer user data for purposes that are unrelated to my item's single purpose
 - I do not use or transfer user data to determine creditworthiness or for lending purposes
 
-Privacy policy URL: link to PRIVACY.md in the public repository.
+Privacy policy URL: https://github.com/alexdeg92/pr-code-stats/blob/main/PRIVACY.md
+
+Homepage / support URL: https://github.com/alexdeg92/pr-code-stats
