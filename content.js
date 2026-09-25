@@ -87,8 +87,8 @@ function apply() {
   btn.className = 'prcs-toggle' + (includeTests ? ' prcs-on' : '');
   btn.textContent = includeTests ? 'incl. tests' : 'excl. tests';
   btn.title =
-    `Code: +${fmt(stats.code.add)} -${fmt(stats.code.del)} in ${stats.code.files} files\n` +
-    `Tests: +${fmt(t.add)} -${fmt(t.del)} in ${t.files} files (${pct}% of added lines)\n` +
+    `Code: +${fmt(stats.code.add)} -${fmt(stats.code.del)} in ${files(stats.code.files)}\n` +
+    `Tests: +${fmt(t.add)} -${fmt(t.del)} in ${files(t.files)} (${pct}% of added lines)\n` +
     `Click to ${includeTests ? 'exclude' : 'include'} tests`;
   btn.addEventListener('click', (e) => {
     e.preventDefault();
@@ -127,6 +127,10 @@ function span(text, className) {
   s.className = className;
   s.textContent = text;
   return s;
+}
+
+function files(n) {
+  return `${n} file${n === 1 ? '' : 's'}`;
 }
 
 function fmt(n) {
