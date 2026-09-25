@@ -1,0 +1,33 @@
+[data-prcs-hidden] {
+  display: none !important;
+}
+
+.prcs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.prcs-toggle {
+  font: inherit;
+  font-size: 11px;
+  line-height: 18px;
+  padding: 0 6px;
+  margin-left: 2px;
+  border-radius: 9px;
+  border: 1px solid var(--borderColor-default, #d0d7de);
+  background: transparent;
+  color: var(--fgColor-muted, #656d76);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.prcs-toggle:hover {
+  color: var(--fgColor-default, #1f2328);
+  border-color: var(--fgColor-muted, #656d76);
+}
+
+.prcs-toggle.prcs-on {
+  color: var(--fgColor-attention, #9a6700);
+  border-color: var(--borderColor-attention-emphasis, #bf8700);
+}

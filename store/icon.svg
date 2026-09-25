@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128">
+  <rect x="4" y="4" width="120" height="120" rx="26" fill="#0d1117"/>
+  <rect x="4" y="4" width="120" height="120" rx="26" fill="none" stroke="#30363d" stroke-width="4"/>
+  <!-- plus -->
+  <rect x="22" y="56" width="40" height="14" rx="4" fill="#3fb950"/>
+  <rect x="35" y="43" width="14" height="40" rx="4" fill="#3fb950"/>
+  <!-- minus -->
+  <rect x="70" y="56" width="36" height="14" rx="4" fill="#f85149"/>
+  <!-- bar underneath: code kept, tests dimmed -->
+  <rect x="22" y="92" width="50" height="10" rx="5" fill="#3fb950"/>
+  <rect x="78" y="92" width="28" height="10" rx="5" fill="#484f58"/>
+</svg>
