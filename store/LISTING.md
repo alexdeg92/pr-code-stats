@@ -21,6 +21,7 @@ Features:
 - Shows the line count without test files by default
 - One click to include tests; your choice is remembered
 - Hover for the breakdown: code vs tests, file counts, share of added lines
+- Optional "Auto-view tests" switch on the Files changed page: marks test files as Viewed and folds test folders in the file tree, so you only scroll through real code. Off by default, and turning it off undoes only what it did
 - Works on private repositories using your existing GitHub login, no token required
 - Test file patterns are editable (regex per line) on the options page
 - Default patterns cover JavaScript/TypeScript, Python, Go, Ruby, Swift, Kotlin, Java, C#, PHP, snapshots, Cypress and Playwright
@@ -39,7 +40,7 @@ Single purpose:
 Shows the number of lines changed in a GitHub pull request excluding test files, with a toggle to include them.
 
 Permission justifications:
-- storage: Saves the user's toggle choice, their test file patterns, and an optional GitHub token.
+- storage: Saves the user's toggle choices, their test file patterns, an optional GitHub token, and which files the "Auto-view tests" switch marked as viewed so it can undo them.
 - Host permission github.com: Reads the pull request header to show the adjusted line count, and downloads the pull request's diff to count lines per file.
 - Host permission patch-diff.githubusercontent.com: GitHub redirects pull request diff downloads to this host.
 - Host permission api.github.com: Fallback for fetching a pull request's file list when the diff is unavailable, and used when the user supplies their own token.

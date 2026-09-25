@@ -20,6 +20,9 @@
     <p class="hint">One regex per line, matched against the file path. Lines starting with # are ignored.</p>
     <textarea id="patterns" spellcheck="false"></textarea>
 
+    <label><input id="autoview" type="checkbox" style="width:auto" /> Auto-view test files on the Files changed page</label>
+    <p class="hint">Ticks GitHub's "Viewed" box on every test file and folds test-only folders in the file tree. Turning it off undoes only what it did. Off by default; there is also a switch for it in the Files changed toolbar.</p>
+
     <label for="token">GitHub token (optional)</label>
     <p class="hint">Not needed when you are logged in to github.com. Only set it if counts fail to load.</p>
     <input id="token" type="password" autocomplete="off" />

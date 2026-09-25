@@ -31,3 +31,54 @@
   color: var(--fgColor-attention, #9a6700);
   border-color: var(--borderColor-attention-emphasis, #bf8700);
 }
+
+.prcs-autoview {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-right: 12px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font: inherit;
+  font-size: 12px;
+  color: var(--fgColor-muted, #656d76);
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.prcs-autoview:hover {
+  color: var(--fgColor-default, #1f2328);
+}
+
+.prcs-autoview-track {
+  position: relative;
+  width: 26px;
+  height: 14px;
+  border-radius: 7px;
+  background: var(--borderColor-default, #d0d7de);
+  transition: background 0.15s;
+}
+
+.prcs-autoview-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--bgColor-default, #fff);
+  transition: transform 0.15s;
+}
+
+.prcs-autoview[aria-checked='true'] {
+  color: var(--fgColor-default, #1f2328);
+}
+
+.prcs-autoview[aria-checked='true'] .prcs-autoview-track {
+  background: var(--bgColor-success-emphasis, #1f883d);
+}
+
+.prcs-autoview[aria-checked='true'] .prcs-autoview-thumb {
+  transform: translateX(12px);
+}

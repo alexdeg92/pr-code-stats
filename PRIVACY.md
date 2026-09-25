@@ -11,6 +11,7 @@ When you open a pull request on github.com, the extension downloads that pull re
 ## What it stores
 
 - Your "include tests" toggle and your test file patterns, in Chrome sync storage so they follow your Chrome profile.
+- Which files the "Auto-view tests" switch marked as Viewed on each pull request, in Chrome local storage, so turning the switch off can undo exactly those.
 - An optional GitHub token, in Chrome local storage on this device only. It is sent only to api.github.com, as the Authorization header of requests for the pull request you are viewing.
 
 ## What it sends
