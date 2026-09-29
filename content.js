@@ -100,26 +100,68 @@ function apply() {
   badge.append(btn);
 }
 
-function load(owner, repo, number, key) {
+async function load(owner, repo, number, key) {
   loadingKey = key;
-  chrome.runtime.sendMessage({ type: 'pr-files', owner, repo, number }, (res) => {
-    loadingKey = null;
-    if (!res || res.error) {
-      failedKey = key;
-      console.warn('[pr-code-stats]', res?.error || chrome.runtime.lastError?.message);
-      return;
-    }
-    const code = { add: 0, del: 0, files: 0 };
-    const tests = { add: 0, del: 0, files: 0 };
-    for (const f of res.files) {
-      const bucket = testPatterns.some((re) => re.test(f.path)) ? tests : code;
-      bucket.add += f.add;
-      bucket.del += f.del;
-      bucket.files++;
-    }
-    stats = { key, code, tests };
-    apply();
-  });
+  let files;
+  const errors = [];
+  try {
+    files = await fromChangesPage(owner, repo, number);
+  } catch (err) {
+    errors.push(`changes page: ${err.message}`);
+    // Fallback: the background worker downloads the .diff or asks the API.
+    const res = await new Promise((resolve) =>
+      chrome.runtime.sendMessage({ type: 'pr-files', owner, repo, number }, resolve)
+    );
+    if (res?.files) files = res.files;
+    else errors.push(`diff: ${res?.error || chrome.runtime.lastError?.message || 'no response'}`);
+  }
+  loadingKey = null;
+  if (!files) {
+    failedKey = key;
+    console.warn('[pr-code-stats] could not load line counts.', errors.join(' | '));
+    return;
+  }
+
+  const code = { add: 0, del: 0, files: 0 };
+  const tests = { add: 0, del: 0, files: 0 };
+  for (const f of files) {
+    const bucket = testPatterns.some((re) => re.test(f.path)) ? tests : code;
+    bucket.add += f.add;
+    bucket.del += f.del;
+    bucket.files++;
+  }
+  stats = { key, code, tests };
+  apply();
+}
+
+// GitHub's Files changed page embeds every file's line counts as JSON. Fetching it
+// is same-origin with the page, so no redirect, CORS or blocker can get in the way.
+async function fromChangesPage(owner, repo, number) {
+  const res = await fetch(`/${owner}/${repo}/pull/${number}/changes`, { credentials: 'same-origin' });
+  if (!res.ok) throw new Error(`HTTP ${res.status}`);
+  const html = await res.text();
+  const m = html.match(/<script type="application\/json" data-target="react-app\.embeddedData">([\s\S]*?)<\/script>/);
+  if (!m) throw new Error('no embedded data');
+  const summaries = findKey(JSON.parse(m[1]), 'diffSummaries');
+  if (!Array.isArray(summaries) || !summaries.length) throw new Error('no diffSummaries');
+
+  const files = summaries.map((f) => ({ path: f.path, add: f.linesAdded, del: f.linesDeleted }));
+  // Very large PRs may embed only part of the list; the header total tells us.
+  const header = findHeaderStat();
+  const expected = header && Number(header.add.textContent.replace(/[^\d]/g, ''));
+  const got = files.reduce((n, f) => n + f.add, 0);
+  if (expected && got !== expected) throw new Error(`partial list (${got} of ${expected} added lines)`);
+  return files;
+}
+
+function findKey(obj, key) {
+  if (!obj || typeof obj !== 'object') return undefined;
+  if (key in obj) return obj[key];
+  for (const v of Object.values(obj)) {
+    const hit = findKey(v, key);
+    if (hit !== undefined) return hit;
+  }
+  return undefined;
 }
 
 function span(text, className) {
