@@ -17,24 +17,27 @@ async function getFiles(owner, repo, number) {
   const hit = cache.get(key);
   if (hit && Date.now() - hit.at < CACHE_MS) return hit.files;
 
+  // Each source can fail on its own (blocked redirect, 503 on big repos, expired
+  // token, private repo without a token), so try them in turn until one works.
   // Token stays on this device (local, not sync).
   const { token } = await chrome.storage.local.get('token');
-  let files;
-  if (token) {
-    files = await fromApi(owner, repo, number, token);
-  } else {
-    // The .diff endpoint sometimes 503s on large repos; the anonymous API
-    // covers public repos in that case.
+  const sources = [
+    token && ['API with token', () => fromApi(owner, repo, number, token)],
+    ['diff', () => fromDiff(owner, repo, number)],
+    ['public API', () => fromApi(owner, repo, number, null)],
+  ].filter(Boolean);
+
+  const errors = [];
+  for (const [name, load] of sources) {
     try {
-      files = await fromDiff(owner, repo, number);
-    } catch (diffErr) {
-      files = await fromApi(owner, repo, number, null).catch(() => {
-        throw diffErr;
-      });
+      const files = await load();
+      cache.set(key, { at: Date.now(), files });
+      return files;
+    } catch (err) {
+      errors.push(`${name}: ${err?.message || err}`);
     }
   }
-  cache.set(key, { at: Date.now(), files });
-  return files;
+  throw new Error(errors.join(' | '));
 }
 
 async function fromApi(owner, repo, number, token) {

@@ -113,7 +113,7 @@ async function load(owner, repo, number, key) {
       chrome.runtime.sendMessage({ type: 'pr-files', owner, repo, number }, resolve)
     );
     if (res?.files) files = res.files;
-    else errors.push(`diff: ${res?.error || chrome.runtime.lastError?.message || 'no response'}`);
+    else errors.push(`background: ${res?.error || chrome.runtime.lastError?.message || 'no response'}`);
   }
   loadingKey = null;
   if (!files) {
