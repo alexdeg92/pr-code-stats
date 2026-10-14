@@ -23,3 +23,9 @@ function compileTestPatterns(text) {
       }
     });
 }
+
+// Text of the pill next to the count: what the number leaves out or includes.
+function countLabel(includeTests, commentsOut) {
+  if (!commentsOut) return includeTests ? 'incl. tests' : 'excl. tests';
+  return includeTests ? 'incl. tests, excl. comments' : 'excl. tests & comments';
+}

@@ -96,7 +96,8 @@ function apply() {
   const btn = document.createElement('button');
   btn.type = 'button';
   btn.className = 'prcs-toggle' + (includeTests ? ' prcs-on' : '');
-  btn.textContent = includeTests ? 'incl. tests' : 'excl. tests';
+  const commentsOut = excludeComments && stats.unscanned < stats.code.files + t.files;
+  btn.textContent = countLabel(includeTests, commentsOut);
   const d = stats.docs;
   btn.title =
     `Code: +${fmt(stats.code.add)} -${fmt(stats.code.del)} in ${files(stats.code.files)}\n` +

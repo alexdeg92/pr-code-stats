@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>PR Code Stats</title>
+    <link rel="stylesheet" href="ui.css" />
+    <style>
+      body {
+        width: 320px;
+      }
+
+      header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 14px 16px 4px;
+        font-weight: 600;
+      }
+
+      main {
+        padding: 0 16px;
+      }
+
+      footer {
+        padding: 10px 16px 12px;
+        border-top: 1px solid var(--line);
+        font-size: 13px;
+      }
+
+      footer button {
+        padding: 0;
+        border: 0;
+        background: none;
+        color: var(--accent);
+        font: inherit;
+        cursor: pointer;
+      }
+
+      footer button:hover {
+        text-decoration: underline;
+      }
+    </style>
+  </head>
+  <body>
+    <header>
+      <img src="icons/icon32.png" width="18" height="18" alt="" />
+      PR Code Stats
+    </header>
+
+    <main>
+      <label class="row">
+        <span>
+          <span class="row-title">Leave out test files</span>
+        </span>
+        <input class="switch" type="checkbox" role="switch" data-setting="includeTests" data-invert />
+      </label>
+      <label class="row">
+        <span>
+          <span class="row-title">Leave out comments and blank lines</span>
+        </span>
+        <input class="switch" type="checkbox" role="switch" data-setting="excludeComments" />
+      </label>
+      <label class="row">
+        <span>
+          <span class="row-title">Auto-view test files</span>
+          <span class="row-hint">Marks them as Viewed on the Files changed page</span>
+        </span>
+        <input class="switch" type="checkbox" role="switch" data-setting="autoViewTests" />
+      </label>
+    </main>
+
+    <footer>
+      <button id="all-settings" type="button">All settings</button>
+    </footer>
+
+    <script src="settings.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

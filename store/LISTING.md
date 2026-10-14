@@ -23,6 +23,7 @@ Features:
 - Hover for the breakdown: code vs tests, file counts, share of added lines
 - Optional "Auto-view tests" switch on the Files changed page: marks test files as Viewed and folds test folders in the file tree, so you only scroll through real code. Off by default, and turning it off undoes only what it did
 - Optional setting to leave comments and blank lines out of the count
+- Click the toolbar icon to flip any of these on or off
 - Warns when Markdown files (usually docs) are part of the count
 - Works on private repositories using your existing GitHub login, no token required
 - Test file patterns are editable (regex per line) on the options page
