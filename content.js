@@ -1,18 +1,24 @@
 // Replaces the "+947 -77" in the PR header with the count excluding test files,
 // plus a toggle to show the full count. GitHub is a SPA and re-renders the header,
 // so a MutationObserver re-applies the badge whenever it gets wiped.
+// Markdown files stay in the count but get a warning, since they are usually docs.
 
 const PR_PATH = /^\/([^/]+)\/([^/]+)\/pull\/(\d+)(\/|$)/;
 const HIDDEN = 'data-prcs-hidden';
+const DOCS = /\.(md|mdx|markdown)$/i;
+const ALERT_ICON =
+  '<svg viewBox="0 0 16 16" width="12" height="12" aria-hidden="true"><path fill="currentColor" d="M6.457 1.047c.659-1.234 2.427-1.234 3.086 0l6.082 11.378A1.75 1.75 0 0 1 14.082 15H1.918a1.75 1.75 0 0 1-1.543-2.575Zm1.763.707a.25.25 0 0 0-.44 0L1.698 13.132a.25.25 0 0 0 .22.368h12.164a.25.25 0 0 0 .22-.368Zm.53 3.996v2.5a.75.75 0 0 1-1.5 0v-2.5a.75.75 0 0 1 1.5 0ZM9 11a1 1 0 1 1-2 0 1 1 0 0 1 2 0Z"></path></svg>';
 
 let includeTests = false;
+let excludeComments = false;
 let testPatterns = compileTestPatterns(DEFAULT_TEST_PATTERNS);
-let stats = null; // { key, code: {add, del, files}, tests: {add, del, files} }
+let stats = null; // { key, code, tests, docs: {add, del, files}, unscanned }
 let loadingKey = null;
 let failedKey = null; // don't retry on every DOM mutation after an error
 
-chrome.storage.sync.get(['includeTests', 'patterns'], (s) => {
+chrome.storage.sync.get(['includeTests', 'excludeComments', 'patterns'], (s) => {
   includeTests = !!s.includeTests;
+  excludeComments = !!s.excludeComments;
   if (s.patterns) testPatterns = compileTestPatterns(s.patterns);
   schedule();
 });
@@ -21,6 +27,11 @@ chrome.storage.onChanged.addListener((changes) => {
   if (changes.patterns) {
     testPatterns = compileTestPatterns(changes.patterns.newValue || DEFAULT_TEST_PATTERNS);
     stats = null;
+  }
+  if (changes.excludeComments) {
+    excludeComments = !!changes.excludeComments.newValue;
+    stats = null;
+    failedKey = null;
   }
   if (changes.includeTests) includeTests = !!changes.includeTests.newValue;
   schedule();
@@ -61,7 +72,7 @@ function apply() {
   const shown = includeTests
     ? { add: stats.code.add + stats.tests.add, del: stats.code.del + stats.tests.del }
     : stats.code;
-  const state = `${key}|${includeTests}|${shown.add}|${shown.del}`;
+  const state = `${key}|${includeTests}|${excludeComments}|${shown.add}|${shown.del}`;
 
   let badge = target.add.parentElement.querySelector(':scope > .prcs');
   if (badge && badge.dataset.state === state && target.add.hasAttribute(HIDDEN)) return;
@@ -86,9 +97,16 @@ function apply() {
   btn.type = 'button';
   btn.className = 'prcs-toggle' + (includeTests ? ' prcs-on' : '');
   btn.textContent = includeTests ? 'incl. tests' : 'excl. tests';
+  const d = stats.docs;
   btn.title =
     `Code: +${fmt(stats.code.add)} -${fmt(stats.code.del)} in ${files(stats.code.files)}\n` +
+    (d.files ? `  of which docs (Markdown): +${fmt(d.add)} -${fmt(d.del)} in ${files(d.files)}\n` : '') +
     `Tests: +${fmt(t.add)} -${fmt(t.del)} in ${files(t.files)} (${pct}% of added lines)\n` +
+    (!excludeComments
+      ? ''
+      : stats.unscanned
+        ? `Comments and blank lines still counted in ${files(stats.unscanned)} (diff text unavailable)\n`
+        : 'Comments and blank lines left out\n') +
     `Click to ${includeTests ? 'exclude' : 'include'} tests`;
   btn.addEventListener('click', (e) => {
     e.preventDefault();
@@ -98,22 +116,36 @@ function apply() {
     apply();
   });
   badge.append(btn);
+
+  if (d.add + d.del) {
+    const warn = document.createElement('span');
+    warn.className = 'prcs-docs';
+    warn.title =
+      `+${fmt(d.add)} -${fmt(d.del)} of this count is in Markdown (${files(d.files)}), ` +
+      'which is usually docs rather than code.';
+    warn.innerHTML = `${ALERT_ICON}<span>docs</span>`;
+    badge.append(warn);
+  }
 }
 
 async function load(owner, repo, number, key) {
   loadingKey = key;
+  // The Files changed page only has counts, so leaving comments out needs the diff
+  // text, which the background worker downloads. Each is the other's fallback.
+  const sources = [
+    ['changes page', () => fromChangesPage(owner, repo, number)],
+    ['background', () => fromWorker(owner, repo, number)],
+  ];
+  if (excludeComments) sources.reverse();
   let files;
   const errors = [];
-  try {
-    files = await fromChangesPage(owner, repo, number);
-  } catch (err) {
-    errors.push(`changes page: ${err.message}`);
-    // Fallback: the background worker downloads the .diff or asks the API.
-    const res = await new Promise((resolve) =>
-      chrome.runtime.sendMessage({ type: 'pr-files', owner, repo, number }, resolve)
-    );
-    if (res?.files) files = res.files;
-    else errors.push(`background: ${res?.error || chrome.runtime.lastError?.message || 'no response'}`);
+  for (const [name, get] of sources) {
+    try {
+      files = await get();
+      break;
+    } catch (err) {
+      errors.push(`${name}: ${err.message}`);
+    }
   }
   loadingKey = null;
   if (!files) {
@@ -124,14 +156,30 @@ async function load(owner, repo, number, key) {
 
   const code = { add: 0, del: 0, files: 0 };
   const tests = { add: 0, del: 0, files: 0 };
+  const docs = { add: 0, del: 0, files: 0 }; // part of code
+  let unscanned = 0;
   for (const f of files) {
-    const bucket = testPatterns.some((re) => re.test(f.path)) ? tests : code;
-    bucket.add += f.add;
-    bucket.del += f.del;
-    bucket.files++;
+    if (excludeComments && !f.withoutComments) unscanned++;
+    const counts = (excludeComments && f.withoutComments) || f;
+    const isTest = testPatterns.some((re) => re.test(f.path));
+    for (const bucket of isTest ? [tests] : DOCS.test(f.path) ? [code, docs] : [code]) {
+      bucket.add += counts.add;
+      bucket.del += counts.del;
+      bucket.files++;
+    }
   }
-  stats = { key, code, tests };
+  stats = { key, code, tests, docs, unscanned };
   apply();
+}
+
+// The background worker downloads the .diff or asks the API, and also counts the
+// lines without comments.
+async function fromWorker(owner, repo, number) {
+  const res = await new Promise((resolve) =>
+    chrome.runtime.sendMessage({ type: 'pr-files', owner, repo, number }, resolve)
+  );
+  if (res?.files) return res.files;
+  throw new Error(res?.error || chrome.runtime.lastError?.message || 'no response');
 }
 
 // GitHub's Files changed page embeds every file's line counts as JSON. Fetching it

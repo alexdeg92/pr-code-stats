@@ -20,11 +20,14 @@
     <p class="hint">One regex per line, matched against the file path. Lines starting with # are ignored.</p>
     <textarea id="patterns" spellcheck="false"></textarea>
 
+    <label><input id="comments" type="checkbox" style="width:auto" /> Leave comments and blank lines out of the counts</label>
+    <p class="hint">Reads the full diff and skips blank lines and comment-only lines, by file type (<code>//</code>, <code>/* */</code>, <code>#</code>, <code>--</code>, <code>&lt;!-- --&gt;</code>). A line with code and a trailing comment still counts. Markdown files always get a "docs" warning next to the count, since they are rarely code.</p>
+
     <label><input id="autoview" type="checkbox" style="width:auto" /> Auto-view test files on the Files changed page</label>
-    <p class="hint">Ticks GitHub's "Viewed" box on every test file and folds test-only folders in the file tree. Turning it off undoes only what it did. Off by default; there is also a switch for it in the Files changed toolbar.</p>
+    <p class="hint">Ticks GitHub's "Viewed" box on every test file and folds test-only folders in the file tree. Turning it off undoes only what it did, and a file you un-tick stays un-ticked. Off by default; there is also a switch for it next to the line count.</p>
 
     <label for="token">GitHub token (optional)</label>
-    <p class="hint">Not needed when you are logged in to github.com. Only set it if counts fail to load.</p>
+    <p class="hint">Not needed when you are logged in to github.com. Set one if counts fail to load, or to make Auto-view use GitHub's API instead of clicking the page, which keeps it working when GitHub redesigns the page (the page reloads once after marking). The token needs access to the repository's pull requests.</p>
     <input id="token" type="password" autocomplete="off" />
 
     <button id="save">Save</button>
