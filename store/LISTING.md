@@ -26,8 +26,7 @@ Features:
 - Click the toolbar icon to switch any of these on or off
 - Works on private repositories using your existing GitHub login, no token required
 - An optional GitHub token lets Auto-view use GitHub's API, so it keeps working when GitHub changes its page
-- Test file patterns are editable (one regex per line) on the options page
-- Default patterns cover JavaScript/TypeScript, Python, Go, Ruby, Swift, Kotlin, Java, C#, PHP, snapshots, Cypress and Playwright
+- Recognizes the usual test folders and file names out of the box, and you can edit the patterns on the options page
 
 Privacy: no server, no analytics, no tracking. The extension only talks to GitHub, to fetch the pull request you are viewing.
 
